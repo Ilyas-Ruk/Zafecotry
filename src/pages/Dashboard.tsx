@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [familyData, setFamilyData] = useState(null);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
-  const [selectedAction, setSelectedAction] = useState("");
+  const [selectedAction, setSelectedAction] = useState(null);
 
   useEffect(() => {
     const data = localStorage.getItem('familyData');
@@ -57,7 +56,7 @@ const Dashboard = () => {
     setFamilyData(updatedData);
     localStorage.setItem('familyData', JSON.stringify(updatedData));
     setShowPhotoUpload(false);
-    setSelectedAction("");
+    setSelectedAction(null);
   };
 
   const getLeagueColor = (league) => {
@@ -199,7 +198,7 @@ const Dashboard = () => {
           onSubmit={handlePhotoSubmit}
           onClose={() => {
             setShowPhotoUpload(false);
-            setSelectedAction("");
+            setSelectedAction(null);
           }}
         />
       )}

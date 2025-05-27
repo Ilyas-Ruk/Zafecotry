@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +38,7 @@ const Profile = () => {
   };
 
   const joinDate = new Date(familyData.joinDate).toLocaleDateString();
-  const daysActive = Math.floor((new Date() - new Date(familyData.joinDate)) / (1000 * 60 * 60 * 24));
+  const daysActive = Math.floor((new Date().getTime() - new Date(familyData.joinDate).getTime()) / (1000 * 60 * 60 * 24));
 
   // Mock activity data
   const weeklyActivity = [
