@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,23 +6,26 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Users, Mail, Calendar, Trophy, Leaf, Droplets, Recycle } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserData } from "@/hooks/useUserData";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [familyData, setFamilyData] = useState(null);
+  const { signOut } = useAuth();
+  const { profile, actions, loading } = useUserData();
 
-  useEffect(() => {
-    const data = localStorage.getItem('familyData');
-    if (!data) {
-      navigate('/');
-      return;
-    }
-    setFamilyData(JSON.parse(data));
-  }, [navigate]);
+  if (loading || !profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <Leaf className="w-12 h-12 text-green-600 mx-auto mb-4 animate-spin" />
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
-  if (!familyData) return null;
-
-  const getLeagueColor = (league) => {
+  const getLeagueColor = (league: string) => {
     switch(league) {
       case 'Bronze': return 'bg-orange-100 text-orange-800';
       case 'Silver': return 'bg-gray-100 text-gray-800';
@@ -37,13 +39,17 @@ const Profile = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('familyData');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
-  const joinDate = new Date(familyData.joinDate).toLocaleDateString();
-  const daysActive = Math.floor((new Date().getTime() - new Date(familyData.joinDate).getTime()) / (1000 * 60 * 60 * 24));
+  const joinDate = new Date(profile.created_at).toLocaleDateString();
+  const daysActive = Math.floor((new Date().getTime() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24));
 
   // Mock activity data
   const weeklyActivity = [
@@ -80,26 +86,26 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  {familyData.familyName}
+                  {profile.family_name}
                 </CardTitle>
                 <CardDescription>Family Information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm">{familyData.email}</span>
+                  <span className="text-sm">{profile.email}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm">{familyData.memberCount} members</span>
+                  <span className="text-sm">{profile.member_count} members</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
                   <span className="text-sm">Joined {joinDate}</span>
                 </div>
                 <div className="pt-2">
-                  <Badge className={getLeagueColor(familyData.league)}>
-                    {familyData.league} League
+                  <Badge className={getLeagueColor(profile.league)}>
+                    {profile.league} League
                   </Badge>
                 </div>
               </CardContent>
@@ -115,7 +121,7 @@ const Profile = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Total Points</span>
-                  <span className="font-semibold">{familyData.points}</span>
+                  <span className="font-semibold">{profile.points}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Days Active</span>
@@ -127,7 +133,7 @@ const Profile = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">CO₂ Saved</span>
-                  <span className="font-semibold text-green-600">24.8 kg</span>
+                  <span className="font-semibold text-green-600">{(profile.points * 0.1).toFixed(1)} kg</span>
                 </div>
               </CardContent>
             </Card>
