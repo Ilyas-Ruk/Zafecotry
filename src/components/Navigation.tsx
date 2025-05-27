@@ -1,16 +1,27 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, Trophy, User, Leaf } from "lucide-react";
+import { Home, Trophy, User, Leaf, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 const Navigation = () => {
   const location = useLocation();
+  const { signOut } = useAuth();
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
     { path: '/profile', icon: User, label: 'Profile' }
   ];
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <nav className="bg-white/80 backdrop-blur-sm border-b border-green-100 sticky top-0 z-50">
@@ -37,6 +48,15 @@ const Navigation = () => {
                 {item.label}
               </Link>
             ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </div>

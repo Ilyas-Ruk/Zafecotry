@@ -1,36 +1,34 @@
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Leaf, Users, Trophy, Camera } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const [familyName, setFamilyName] = useState("");
-  const [email, setEmail] = useState("");
-  const [memberCount, setMemberCount] = useState("");
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
-  const handleSignUp = () => {
-    if (familyName && email && memberCount) {
-      // Store family data in localStorage for demo
-      localStorage.setItem('familyData', JSON.stringify({
-        familyName,
-        email,
-        memberCount: parseInt(memberCount),
-        points: 0,
-        league: 'Bronze',
-        joinDate: new Date().toISOString()
-      }));
+  useEffect(() => {
+    if (!loading && user) {
       navigate('/dashboard');
     }
-  };
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <Leaf className="w-12 h-12 text-green-600 mx-auto mb-4 animate-spin" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
-      {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
@@ -65,54 +63,28 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Sign Up Form */}
+        {/* Call to Action */}
         <div className="max-w-md mx-auto">
           <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl text-gray-900">Join the Challenge</CardTitle>
-              <CardDescription>Register your family and start making a difference today</CardDescription>
+              <CardTitle className="text-2xl text-gray-900">Ready to Start?</CardTitle>
+              <CardDescription>Join thousands of families making a difference</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="familyName">Family Name</Label>
-                <Input
-                  id="familyName"
-                  placeholder="The Johnson Family"
-                  value={familyName}
-                  onChange={(e) => setFamilyName(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="family@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="members">Number of Family Members</Label>
-                <Input
-                  id="members"
-                  type="number"
-                  placeholder="4"
-                  min="1"
-                  value={memberCount}
-                  onChange={(e) => setMemberCount(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
               <Button 
-                onClick={handleSignUp}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
-                disabled={!familyName || !email || !memberCount}
+                onClick={() => navigate('/auth')}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
               >
-                Start Our Green Journey
+                Join the Challenge
               </Button>
+              <div className="text-center">
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="text-green-600 hover:text-green-700 text-sm underline"
+                >
+                  Already have an account? Sign in
+                </button>
+              </div>
             </CardContent>
           </Card>
         </div>
