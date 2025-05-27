@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +29,10 @@ const Profile = () => {
       case 'Silver': return 'bg-gray-100 text-gray-800';
       case 'Gold': return 'bg-yellow-100 text-yellow-800';
       case 'Platinum': return 'bg-purple-100 text-purple-800';
+      case 'Titanium': return 'bg-blue-100 text-blue-800';
+      case 'Diamond': return 'bg-cyan-100 text-cyan-800';
+      case 'Ruby': return 'bg-red-100 text-red-800';
+      case 'Wisdom': return 'bg-indigo-100 text-indigo-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };

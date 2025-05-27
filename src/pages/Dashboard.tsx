@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,16 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Leaf, Droplets, Recycle, Heart, Car, Sprout, Trophy, Users, Camera } from "lucide-react";
+import { Leaf, Droplets, Recycle, Heart, Car, Sprout, Trophy, Users } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import ActionCard from "@/components/ActionCard";
 import PhotoUpload from "@/components/PhotoUpload";
+import LeagueModal from "@/components/LeagueModal";
+import PromotionModal from "@/components/PromotionModal";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [familyData, setFamilyData] = useState(null);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
+  const [showLeagueModal, setShowLeagueModal] = useState(false);
+  const [showPromotionModal, setShowPromotionModal] = useState(false);
+  const [promotionData, setPromotionData] = useState(null);
 
   useEffect(() => {
     const data = localStorage.getItem('familyData');
@@ -29,34 +35,51 @@ const Dashboard = () => {
 
   const greenActions = [
     { id: 'water-reuse', icon: Droplets, title: 'Water Reuse', points: 10, description: 'Reuse water for plants or cleaning', requiresPhoto: true },
-    { id: 'recycle', icon: Recycle, title: 'Recycling', points: 5, description: 'Recycle plastic, paper, or glass' },
-    { id: 'donate', icon: Heart, title: 'Donate Items', points: 15, description: 'Donate clothes or household items' },
-    { id: 'public-transport', icon: Car, title: 'Public Transport', points: 8, description: 'Use public transportation' },
+    { id: 'recycle', icon: Recycle, title: 'Recycling', points: 5, description: 'Recycle plastic, paper, or glass', requiresPhoto: true },
+    { id: 'donate', icon: Heart, title: 'Donate Items', points: 15, description: 'Donate clothes or household items', requiresPhoto: true },
+    { id: 'public-transport', icon: Car, title: 'Public Transport', points: 8, description: 'Use public transportation', requiresPhoto: true },
     { id: 'plant', icon: Sprout, title: 'Plant Something', points: 20, description: 'Plant trees, flowers, or vegetables', requiresPhoto: true },
-    { id: 'reduce-waste', icon: Leaf, title: 'Reduce Food Waste', points: 12, description: 'Minimize food wastage' }
+    { id: 'reduce-waste', icon: Leaf, title: 'Reduce Food Waste', points: 12, description: 'Minimize food wastage', requiresPhoto: true }
   ];
 
+  const getLeague = (points) => {
+    if (points >= 2000) return 'Wisdom';
+    if (points >= 1500) return 'Ruby';
+    if (points >= 1000) return 'Diamond';
+    if (points >= 750) return 'Titanium';
+    if (points >= 500) return 'Platinum';
+    if (points >= 250) return 'Gold';
+    if (points >= 100) return 'Silver';
+    return 'Bronze';
+  };
+
   const handleActionClick = (action) => {
-    if (action.requiresPhoto) {
-      setSelectedAction(action);
-      setShowPhotoUpload(true);
-    } else {
-      // Add points directly for non-photo actions
-      const newPoints = familyData.points + action.points;
-      const updatedData = { ...familyData, points: newPoints };
-      setFamilyData(updatedData);
-      localStorage.setItem('familyData', JSON.stringify(updatedData));
-    }
+    setSelectedAction(action);
+    setShowPhotoUpload(true);
   };
 
   const handlePhotoSubmit = (actionId, imageFile) => {
     const action = greenActions.find(a => a.id === actionId);
     const newPoints = familyData.points + action.points;
-    const updatedData = { ...familyData, points: newPoints };
+    const currentLeague = getLeague(familyData.points);
+    const newLeague = getLeague(newPoints);
+    
+    const updatedData = { ...familyData, points: newPoints, league: newLeague };
     setFamilyData(updatedData);
     localStorage.setItem('familyData', JSON.stringify(updatedData));
+    
+    // Check for league promotion
+    if (currentLeague !== newLeague) {
+      setPromotionData({ oldLeague: currentLeague, newLeague: newLeague });
+      setShowPromotionModal(true);
+    }
+    
     setShowPhotoUpload(false);
     setSelectedAction(null);
+  };
+
+  const handleLeagueClick = () => {
+    setShowLeagueModal(true);
   };
 
   const getLeagueColor = (league) => {
@@ -65,18 +88,26 @@ const Dashboard = () => {
       case 'Silver': return 'bg-gray-100 text-gray-800';
       case 'Gold': return 'bg-yellow-100 text-yellow-800';
       case 'Platinum': return 'bg-purple-100 text-purple-800';
+      case 'Titanium': return 'bg-blue-100 text-blue-800';
+      case 'Diamond': return 'bg-cyan-100 text-cyan-800';
+      case 'Ruby': return 'bg-red-100 text-red-800';
+      case 'Wisdom': return 'bg-indigo-100 text-indigo-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const nextLeagueThreshold = {
     'Bronze': 100,
-    'Silver': 500,
-    'Gold': 1000,
-    'Platinum': 2000
+    'Silver': 250,
+    'Gold': 500,
+    'Platinum': 750,
+    'Titanium': 1000,
+    'Diamond': 1500,
+    'Ruby': 2000,
+    'Wisdom': 3000
   };
 
-  const progressToNext = (familyData.points / nextLeagueThreshold[familyData.league]) * 100;
+  const progressToNext = familyData.league === 'Wisdom' ? 100 : (familyData.points / nextLeagueThreshold[familyData.league]) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
@@ -93,7 +124,10 @@ const Dashboard = () => {
                 {familyData.memberCount} members
               </p>
             </div>
-            <Badge className={getLeagueColor(familyData.league)}>
+            <Badge 
+              className={`cursor-pointer ${getLeagueColor(familyData.league)}`}
+              onClick={handleLeagueClick}
+            >
               {familyData.league} League
             </Badge>
           </div>
@@ -108,7 +142,10 @@ const Dashboard = () => {
                     {familyData.points} Points
                   </CardTitle>
                   <CardDescription>
-                    {nextLeagueThreshold[familyData.league] - familyData.points} points to next league
+                    {familyData.league === 'Wisdom' 
+                      ? 'You have reached the highest league!' 
+                      : `${nextLeagueThreshold[familyData.league] - familyData.points} points to next league`
+                    }
                   </CardDescription>
                 </div>
               </div>
@@ -200,6 +237,22 @@ const Dashboard = () => {
             setShowPhotoUpload(false);
             setSelectedAction(null);
           }}
+        />
+      )}
+
+      {/* League Modal */}
+      {showLeagueModal && (
+        <LeagueModal
+          currentLeague={familyData.league}
+          onClose={() => setShowLeagueModal(false)}
+        />
+      )}
+
+      {/* Promotion Modal */}
+      {showPromotionModal && (
+        <PromotionModal
+          promotionData={promotionData}
+          onClose={() => setShowPromotionModal(false)}
         />
       )}
     </div>
