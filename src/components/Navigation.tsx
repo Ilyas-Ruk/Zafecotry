@@ -1,5 +1,4 @@
-
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Trophy, User, Leaf, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const Navigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut } = useAuth();
 
   const navItems = [
@@ -18,6 +18,7 @@ const Navigation = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      navigate('/auth');
     } catch (error) {
       console.error('Error signing out:', error);
     }
