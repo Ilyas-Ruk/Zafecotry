@@ -9,10 +9,54 @@ import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
 
+interface WeeklyActivity {
+  day: string;
+  points: number;
+}
+
 const Profile = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { profile, actions, loading } = useUserData();
+  const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivity[]>([]);
+
+  useEffect(() => {
+    if (actions) {
+      const now = new Date();
+      const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())); // Start from Sunday
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      // Initialize daily points for the week
+      const dailyPoints: { [key: string]: number } = {
+        'Sun': 0,
+        'Mon': 0,
+        'Tue': 0,
+        'Wed': 0,
+        'Thu': 0,
+        'Fri': 0,
+        'Sat': 0
+      };
+
+      // Sum points for each day
+      actions.forEach(action => {
+        const actionDate = new Date(action.completed_at);
+        if (actionDate >= startOfWeek) {
+          const dayName = actionDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3);
+          dailyPoints[dayName] += action.points_earned;
+        }
+      });
+
+      // Convert to array format
+      const weeklyData = Object.entries(dailyPoints).map(([day, points]) => ({
+        day,
+        points
+      }));
+
+      // Rotate array to start from Monday
+      const mondayStart = [...weeklyData.slice(1), weeklyData[0]];
+      setWeeklyActivity(mondayStart);
+    }
+  }, [actions]);
 
   if (loading || !profile) {
     return (
@@ -51,16 +95,8 @@ const Profile = () => {
   const joinDate = new Date(profile.created_at).toLocaleDateString();
   const daysActive = Math.floor((new Date().getTime() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24));
 
-  // Mock activity data
-  const weeklyActivity = [
-    { day: 'Mon', points: 25 },
-    { day: 'Tue', points: 18 },
-    { day: 'Wed', points: 32 },
-    { day: 'Thu', points: 15 },
-    { day: 'Fri', points: 28 },
-    { day: 'Sat', points: 40 },
-    { day: 'Sun', points: 22 }
-  ];
+  // Calculate max points for progress bar scaling
+  const maxDailyPoints = Math.max(...weeklyActivity.map(day => day.points)) || 50;
 
   const achievements = [
     { name: 'First Water Reuse', icon: Droplets, earned: true, description: 'Upload your first water reuse photo' },
@@ -151,7 +187,10 @@ const Profile = () => {
                   {weeklyActivity.map((day) => (
                     <div key={day.day} className="flex items-center gap-3">
                       <span className="text-sm font-medium w-8">{day.day}</span>
-                      <Progress value={(day.points / 40) * 100} className="flex-1" />
+                      <Progress 
+                        value={(day.points / maxDailyPoints) * 100} 
+                        className="flex-1" 
+                      />
                       <span className="text-sm font-semibold w-12 text-right">{day.points}pt</span>
                     </div>
                   ))}
