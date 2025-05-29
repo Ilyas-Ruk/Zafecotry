@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -44,7 +43,6 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Features Preview */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-xl border border-green-100">
             <Users className="w-8 h-8 text-green-600 mx-auto mb-3" />
@@ -63,7 +61,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Call to Action */}
         <div className="max-w-md mx-auto">
           <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
             <CardHeader className="text-center">
@@ -79,7 +76,7 @@ const Index = () => {
               </Button>
               <div className="text-center">
                 <button
-                  onClick={() => navigate('/auth')}
+                  onClick={() => navigate('/auth', { state: { isSignUp: false } })}
                   className="text-green-600 hover:text-green-700 text-sm underline"
                 >
                   Already have an account? Sign in
