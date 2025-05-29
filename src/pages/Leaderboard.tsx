@@ -1,49 +1,66 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Users, Medal, Crown } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
+
+interface LeaderboardFamily {
+  id: string;
+  family_name: string;
+  points: number;
+  league: string;
+  member_count: number;
+  rank?: number;
+}
 
 const Leaderboard = () => {
-  const [familyData, setFamilyData] = useState(null);
+  const [families, setFamilies] = useState<LeaderboardFamily[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const data = localStorage.getItem('familyData');
-    if (data) {
-      setFamilyData(JSON.parse(data));
-    }
+    fetchLeaderboardData();
   }, []);
 
-  // Mock leaderboard data - in a real app, this would come from a backend
-  const leaderboardData = [
-    { name: "The Green Warriors", points: 1850, league: "Platinum", members: 5, rank: 1 },
-    { name: "Eco Champions", points: 1420, league: "Gold", members: 4, rank: 2 },
-    { name: "Planet Savers", points: 1380, league: "Gold", members: 6, rank: 3 },
-    { name: "The Johnson Family", points: familyData?.points || 0, league: familyData?.league || "Bronze", members: familyData?.memberCount || 4, rank: 15 },
-    { name: "Green Dreamers", points: 890, league: "Silver", members: 3, rank: 4 },
-    { name: "Earth Lovers", points: 780, league: "Silver", members: 5, rank: 5 },
-    { name: "Sustainable Squad", points: 650, league: "Bronze", members: 4, rank: 6 },
-    { name: "Climate Heroes", points: 580, league: "Bronze", members: 2, rank: 7 },
-    { name: "Green Machine", points: 520, league: "Bronze", members: 6, rank: 8 },
-    { name: "Eco Family", points: 450, league: "Bronze", members: 3, rank: 9 }
-  ].sort((a, b) => b.points - a.points).map((family, index) => ({
-    ...family,
-    rank: index + 1
-  }));
+  const fetchLeaderboardData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, family_name, points, league, member_count')
+        .order('points', { ascending: false });
 
-  const getLeagueColor = (league) => {
+      if (error) throw error;
+
+      // Add rank to each family
+      const rankedFamilies = data.map((family, index) => ({
+        ...family,
+        rank: index + 1
+      }));
+
+      setFamilies(rankedFamilies);
+    } catch (error) {
+      console.error('Error fetching leaderboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getLeagueColor = (league: string) => {
     switch(league) {
       case 'Bronze': return 'bg-orange-100 text-orange-800';
       case 'Silver': return 'bg-gray-100 text-gray-800';
       case 'Gold': return 'bg-yellow-100 text-yellow-800';
       case 'Platinum': return 'bg-purple-100 text-purple-800';
+      case 'Titanium': return 'bg-blue-100 text-blue-800';
+      case 'Diamond': return 'bg-cyan-100 text-cyan-800';
+      case 'Ruby': return 'bg-red-100 text-red-800';
+      case 'Wisdom': return 'bg-indigo-100 text-indigo-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getRankIcon = (rank) => {
+  const getRankIcon = (rank: number) => {
     if (rank === 1) return <Crown className="w-5 h-5 text-yellow-500" />;
     if (rank === 2) return <Medal className="w-5 h-5 text-gray-400" />;
     if (rank === 3) return <Medal className="w-5 h-5 text-orange-500" />;
@@ -51,11 +68,23 @@ const Leaderboard = () => {
   };
 
   const leagueStats = {
-    Bronze: leaderboardData.filter(f => f.league === 'Bronze').length,
-    Silver: leaderboardData.filter(f => f.league === 'Silver').length,
-    Gold: leaderboardData.filter(f => f.league === 'Gold').length,
-    Platinum: leaderboardData.filter(f => f.league === 'Platinum').length,
+    Bronze: families.filter(f => f.league === 'Bronze').length,
+    Silver: families.filter(f => f.league === 'Silver').length,
+    Gold: families.filter(f => f.league === 'Gold').length,
+    Platinum: families.filter(f => f.league === 'Platinum').length,
+    Titanium: families.filter(f => f.league === 'Titanium').length,
+    Diamond: families.filter(f => f.league === 'Diamond').length,
+    Ruby: families.filter(f => f.league === 'Ruby').length,
+    Wisdom: families.filter(f => f.league === 'Wisdom').length,
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
+        <Trophy className="w-12 h-12 text-green-600 animate-bounce" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
@@ -74,31 +103,24 @@ const Leaderboard = () => {
           </TabsList>
           
           <TabsContent value="global" className="space-y-4">
-            {leaderboardData.map((family, index) => (
+            {families.map((family) => (
               <Card 
-                key={family.name} 
-                className={`transition-all duration-200 ${
-                  family.name === familyData?.familyName 
-                    ? 'ring-2 ring-green-500 bg-green-50/50' 
-                    : 'hover:shadow-md'
-                }`}
+                key={family.id} 
+                className="hover:shadow-md transition-all duration-200"
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center justify-center w-10 h-10">
-                        {getRankIcon(family.rank)}
+                        {getRankIcon(family.rank!)}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                          {family.name}
-                          {family.name === familyData?.familyName && (
-                            <Badge variant="outline" className="text-xs">You</Badge>
-                          )}
+                        <h3 className="font-semibold text-gray-900">
+                          {family.family_name}
                         </h3>
                         <p className="text-sm text-gray-600 flex items-center gap-1">
                           <Users className="w-3 h-3" />
-                          {family.members} members
+                          {family.member_count} members
                         </p>
                       </div>
                     </div>
@@ -146,15 +168,31 @@ const Leaderboard = () => {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                   <span className="font-medium">Silver League</span>
-                  <span className="text-sm text-gray-600">100-499 points + small rewards</span>
+                  <span className="text-sm text-gray-600">100-249 points</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
                   <span className="font-medium">Gold League</span>
-                  <span className="text-sm text-gray-600">500-999 points + better rewards</span>
+                  <span className="text-sm text-gray-600">250-499 points</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
                   <span className="font-medium">Platinum League</span>
-                  <span className="text-sm text-gray-600">1000+ points + premium rewards</span>
+                  <span className="text-sm text-gray-600">500-749 points</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                  <span className="font-medium">Titanium League</span>
+                  <span className="text-sm text-gray-600">750-999 points</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-cyan-50 rounded-lg">
+                  <span className="font-medium">Diamond League</span>
+                  <span className="text-sm text-gray-600">1000-1499 points</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                  <span className="font-medium">Ruby League</span>
+                  <span className="text-sm text-gray-600">1500-1999 points</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
+                  <span className="font-medium">Wisdom League</span>
+                  <span className="text-sm text-gray-600">2000+ points</span>
                 </div>
               </CardContent>
             </Card>
