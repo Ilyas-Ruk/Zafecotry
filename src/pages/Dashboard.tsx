@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,24 @@ import PromotionModal from "@/components/PromotionModal";
 import TutorialOverlay from "@/components/TutorialOverlay";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
+import { Link } from "react-router-dom";
+import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
+const Navigation = () => {
+  return (
+    <nav className="bg-white/80 backdrop-blur-sm border-b border-green-100 sticky top-0 z-50">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-green-600">
+            <Leaf className="w-5 h-5" />
+            <span className="text-base md:text-xl">Zafeco</span>
+          </Link>
+          {/* Rest of the navigation code... */}
+        </div>
+      </div>
+    </nav>
+  );
+};
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -24,6 +41,11 @@ const Dashboard = () => {
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [promotionData, setPromotionData] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [achievementPopup, setAchievementPopup] = useState<{
+    name: string;
+    description: string;
+    colorClass: string;
+  } | null>(null);
 
   useEffect(() => {
     if (tutorialStatus && !tutorialStatus.tutorial_completed) {
@@ -73,6 +95,30 @@ const Dashboard = () => {
     if (currentLeague !== newLeague) {
       setPromotionData({ oldLeague: currentLeague, newLeague: newLeague });
       setShowPromotionModal(true);
+      
+      // Add league achievement
+      const achievement = {
+        name: `${newLeague} League Achieved`,
+        description: `You've reached the ${newLeague} League!`,
+        colorClass: getLeagueColor(newLeague)
+      };
+      setAchievementPopup(achievement);
+    }
+    
+    // Check for action milestones
+    const actionCount = actions.length + 1;
+    if (actionCount === 1) {
+      setAchievementPopup({
+        name: "First Step",
+        description: "Completed your first green action",
+        colorClass: "bg-green-100 text-green-800"
+      });
+    } else if (actionCount === 10) {
+      setAchievementPopup({
+        name: "Consistent Green",
+        description: "Completed 10 green actions",
+        colorClass: "bg-green-100 text-green-800"
+      });
     }
     
     setShowPhotoUpload(false);
@@ -274,6 +320,14 @@ const Dashboard = () => {
       {showTutorial && (
         <TutorialOverlay
           onComplete={() => setShowTutorial(false)}
+        />
+      )}
+
+      {/* Achievement Popup */}
+      {achievementPopup && (
+        <AchievementPopup
+          achievement={achievementPopup}
+          onClose={() => setAchievementPopup(null)}
         />
       )}
     </div>
