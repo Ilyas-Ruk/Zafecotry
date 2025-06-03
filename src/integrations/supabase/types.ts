@@ -9,6 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievement_templates: {
+        Row: {
+          category: string
+          color_class: string
+          description: string
+          icon: string
+          id: string
+          league: string | null
+          name: string
+        }
+        Insert: {
+          category: string
+          color_class: string
+          description: string
+          icon: string
+          id: string
+          league?: string | null
+          name: string
+        }
+        Update: {
+          category?: string
+          color_class?: string
+          description?: string
+          icon?: string
+          id?: string
+          league?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      achievements: {
+        Row: {
+          achievement_id: string
+          achievement_name: string
+          category: string
+          description: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          achievement_name: string
+          category: string
+          description: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          achievement_name?: string
+          category?: string
+          description?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
