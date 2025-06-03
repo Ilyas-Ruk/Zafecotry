@@ -1,305 +1,319 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Leaf, Droplets, Recycle, Heart, Car, Sprout, Trophy, Users } from "lucide-react";
-import Navigation from "@/components/Navigation";
-import ActionCard from "@/components/ActionCard";
-import PhotoUpload from "@/components/PhotoUpload";
-import LeagueModal from "@/components/LeagueModal";
-import PromotionModal from "@/components/PromotionModal";
-import TutorialOverlay from "@/components/TutorialOverlay";
-import AchievementPopup from "@/components/AchievementPopup";
+import { useNavigate } from "react-router-dom";
+import { Plus, Trophy, Leaf, Camera, Target, Award } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
 import { useAchievements } from "@/hooks/useAchievements";
-import { Link } from "react-router-dom";
+import Navigation from "@/components/Navigation";
+import ActionCard from "@/components/ActionCard";
+import PhotoUpload from "@/components/PhotoUpload";
+import TutorialOverlay from "@/components/TutorialOverlay";
+import AchievementPopup from "@/components/AchievementPopup";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { profile, actions, tutorialStatus, loading, addAction } = useUserData();
+  const navigate = useNavigate();
+  const { profile, actions, loading: userLoading, addAction, refreshData } = useUserData();
   const { achievements, checkAndAwardAchievement } = useAchievements();
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
-  const [selectedAction, setSelectedAction] = useState(null);
-  const [showLeagueModal, setShowLeagueModal] = useState(false);
-  const [showPromotionModal, setShowPromotionModal] = useState(false);
-  const [promotionData, setPromotionData] = useState(null);
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [achievementPopup, setAchievementPopup] = useState<{
-    name: string;
-    description: string;
-    colorClass: string;
-  } | null>(null);
+  const [selectedAction, setSelectedAction] = useState<any>(null);
+  const [achievementPopup, setAchievementPopup] = useState<any>(null);
 
-  useEffect(() => {
-    if (tutorialStatus && !tutorialStatus.tutorial_completed) {
-      setShowTutorial(true);
+  const sustainabilityActions = [
+    {
+      id: 'water-conservation',
+      title: 'Water Conservation',
+      description: 'Take a shorter shower or fix a leaky faucet',
+      points: 15,
+      icon: 'Droplets',
+      category: 'Water'
+    },
+    {
+      id: 'energy-saving',
+      title: 'Energy Saving',
+      description: 'Switch to LED bulbs or unplug devices',
+      points: 20,
+      icon: 'Zap',
+      category: 'Energy'
+    },
+    {
+      id: 'recycling',
+      title: 'Recycling',
+      description: 'Properly sort and recycle household waste',
+      points: 10,
+      icon: 'RotateCcw',
+      category: 'Waste'
+    },
+    {
+      id: 'sustainable-transport',
+      title: 'Sustainable Transport',
+      description: 'Walk, bike, or use public transport',
+      points: 25,
+      icon: 'Bike',
+      category: 'Transport'
+    },
+    {
+      id: 'plant-care',
+      title: 'Plant Care',
+      description: 'Water plants or start a small garden',
+      points: 15,
+      icon: 'Leaf',
+      category: 'Environment'
+    },
+    {
+      id: 'eco-shopping',
+      title: 'Eco Shopping',
+      description: 'Buy local or organic products',
+      points: 20,
+      icon: 'ShoppingBag',
+      category: 'Consumption'
     }
-  }, [tutorialStatus]);
+  ];
 
-  if (loading || !profile) {
+  const handleActionClick = (action: any) => {
+    setSelectedAction(action);
+    setShowPhotoUpload(true);
+  };
+
+  const handlePhotoUpload = async (photoUrl: string) => {
+    if (!selectedAction || !profile) return;
+
+    try {
+      await addAction(
+        selectedAction.id,
+        selectedAction.title,
+        selectedAction.points,
+        photoUrl
+      );
+
+      // Check for new achievements
+      const newAchievement = await checkAndAwardAchievement(
+        { ...profile, points: profile.points + selectedAction.points },
+        actions.length + 1
+      );
+
+      if (newAchievement) {
+        setAchievementPopup(newAchievement);
+      }
+
+      // Refresh data to get updated profile and actions
+      refreshData();
+      
+      setShowPhotoUpload(false);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Error adding action:', error);
+    }
+  };
+
+  if (!user) {
+    navigate('/auth');
+    return null;
+  }
+
+  if (userLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
-        <div className="text-center">
-          <Leaf className="w-12 h-12 text-green-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading your dashboard...</p>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your dashboard...</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  const greenActions = [
-    { id: 'water-reuse', icon: Droplets, title: 'Water Reuse', points: 10, description: 'Reuse water for plants or cleaning', requiresPhoto: true },
-    { id: 'recycle', icon: Recycle, title: 'Recycling', points: 5, description: 'Recycle plastic, paper, or glass', requiresPhoto: true },
-    { id: 'donate', icon: Heart, title: 'Donate Items', points: 15, description: 'Donate clothes or household items', requiresPhoto: true },
-    { id: 'public-transport', icon: Car, title: 'Public Transport', points: 8, description: 'Use public transportation', requiresPhoto: true },
-    { id: 'plant', icon: Sprout, title: 'Plant Something', points: 20, description: 'Plant trees, flowers, or vegetables', requiresPhoto: true },
-    { id: 'reduce-waste', icon: Leaf, title: 'Reduce Food Waste', points: 12, description: 'Minimize food wastage', requiresPhoto: true }
-  ];
-
-  const handleActionClick = (action) => {
-    setSelectedAction(action);
-    setShowPhotoUpload(true);
-  };
-
-  const handlePhotoSubmit = async (actionId: string, imageFile: File) => {
-    const action = greenActions.find(a => a.id === actionId);
-    if (!action) return;
-
-    const currentLeague = profile.league;
-    
-    // Add the action to database
-    await addAction(actionId, action.title, action.points);
-    
-    // Calculate new league
-    const newPoints = profile.points + action.points;
-    const newLeague = getLeague(newPoints);
-    
-    // Check for league promotion
-    if (currentLeague !== newLeague) {
-      setPromotionData({ oldLeague: currentLeague, newLeague: newLeague });
-      setShowPromotionModal(true);
-    }
-    
-    // Check for achievements
-    const newAchievement = await checkAndAwardAchievement(
-      { ...profile, points: newPoints, league: newLeague }, 
-      actions.length + 1
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center">
+            <p className="text-gray-600">Unable to load profile data.</p>
+            <Button onClick={() => navigate('/auth')} className="mt-4">
+              Go to Authentication
+            </Button>
+          </div>
+        </div>
+      </div>
     );
-    
-    if (newAchievement) {
-      setAchievementPopup(newAchievement);
-    }
-    
-    setShowPhotoUpload(false);
-    setSelectedAction(null);
-  };
-
-  const getLeague = (points: number) => {
-    if (points >= 2000) return 'Wisdom';
-    if (points >= 1500) return 'Ruby';
-    if (points >= 1000) return 'Diamond';
-    if (points >= 750) return 'Titanium';
-    if (points >= 500) return 'Platinum';
-    if (points >= 250) return 'Gold';
-    if (points >= 100) return 'Silver';
-    return 'Bronze';
-  };
+  }
 
   const getLeagueColor = (league: string) => {
-    switch(league) {
-      case 'Bronze': return 'bg-orange-100 text-orange-800';
-      case 'Silver': return 'bg-gray-100 text-gray-800';
-      case 'Gold': return 'bg-yellow-100 text-yellow-800';
-      case 'Platinum': return 'bg-purple-100 text-purple-800';
-      case 'Titanium': return 'bg-blue-100 text-blue-800';
-      case 'Diamond': return 'bg-cyan-100 text-cyan-800';
-      case 'Ruby': return 'bg-red-100 text-red-800';
-      case 'Wisdom': return 'bg-indigo-100 text-indigo-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    const colors: { [key: string]: string } = {
+      'Bronze': 'bg-amber-100 text-amber-800',
+      'Silver': 'bg-gray-100 text-gray-800',
+      'Gold': 'bg-yellow-100 text-yellow-800',
+      'Platinum': 'bg-purple-100 text-purple-800',
+      'Titanium': 'bg-blue-100 text-blue-800',
+      'Diamond': 'bg-cyan-100 text-cyan-800',
+      'Ruby': 'bg-red-100 text-red-800',
+      'Wisdom': 'bg-indigo-100 text-indigo-800'
+    };
+    return colors[league] || 'bg-gray-100 text-gray-800';
   };
-
-  const nextLeagueThreshold = {
-    'Bronze': 100,
-    'Silver': 250,
-    'Gold': 500,
-    'Platinum': 750,
-    'Titanium': 1000,
-    'Diamond': 1500,
-    'Ruby': 2000,
-    'Wisdom': 3000
-  };
-
-  const progressToNext = profile.league === 'Wisdom' ? 100 : (profile.points / nextLeagueThreshold[profile.league]) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+    <div className="min-h-screen bg-gray-50">
       <Navigation />
+      <TutorialOverlay />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Family Header */}
+        {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{profile.family_name}</h1>
-              <p className="text-gray-600 flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                {profile.member_count} members
-              </p>
-            </div>
-            <Badge 
-              className={`cursor-pointer ${getLeagueColor(profile.league)}`}
-              onClick={() => setShowLeagueModal(true)}
-            >
-              {profile.league} League
-            </Badge>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome, {profile.family_name} Family!
+          </h1>
+          <p className="text-gray-600">
+            Track your sustainability actions and compete with families worldwide
+          </p>
+        </div>
 
-          {/* Points and Progress */}
-          <Card id="points-section">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-yellow-500" />
-                    {profile.points} Points
-                  </CardTitle>
-                  <CardDescription>
-                    {profile.league === 'Wisdom' 
-                      ? 'You have reached the highest league!' 
-                      : `${nextLeagueThreshold[profile.league] - profile.points} points to next league`
-                    }
-                  </CardDescription>
-                </div>
-              </div>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Points</CardTitle>
+              <Trophy className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <Progress value={progressToNext} className="h-3" />
+              <div className="text-2xl font-bold text-green-600">{profile.points}</div>
+              <p className="text-xs text-gray-600">Keep earning points!</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Current League</CardTitle>
+              <Award className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <Badge className={getLeagueColor(profile.league)}>
+                {profile.league}
+              </Badge>
+              <p className="text-xs text-gray-600 mt-1">League standing</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Actions Completed</CardTitle>
+              <Target className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{actions.length}</div>
+              <p className="text-xs text-gray-600">Eco-friendly actions</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Green Actions */}
+        {/* Main Content Tabs */}
         <Tabs defaultValue="actions" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="actions" id="progress-tab">Green Actions</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="actions">Available Actions</TabsTrigger>
+            <TabsTrigger value="recent">Recent Actions</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="actions" className="space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Earn Points Today</h2>
-            <div id="green-actions" className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {greenActions.map((action) => (
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Choose Your Next Action</h2>
+              <Button variant="outline" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Suggest Action
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sustainabilityActions.map((action) => (
                 <ActionCard
                   key={action.id}
-                  action={action}
+                  title={action.title}
+                  description={action.description}
+                  points={action.points}
+                  category={action.category}
                   onClick={() => handleActionClick(action)}
                 />
               ))}
             </div>
           </TabsContent>
 
-          <TabsContent value="progress" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
+          <TabsContent value="recent" className="space-y-6">
+            <h2 className="text-xl font-semibold text-gray-900">Your Recent Actions</h2>
+            
+            {actions.length === 0 ? (
               <Card>
-                <CardHeader>
-                  <CardTitle>Recent Actions</CardTitle>
-                  <CardDescription>Your latest green contributions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {actions.slice(0, 5).map((action) => (
-                      <div key={action.id} className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                <CardContent className="text-center py-8">
+                  <Leaf className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No actions yet</h3>
+                  <p className="text-gray-600 mb-4">Start your sustainability journey by completing your first action!</p>
+                  <Button onClick={() => navigate('/dashboard')}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Complete Your First Action
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {actions.slice(0, 10).map((action) => (
+                  <Card key={action.id}>
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                          <Leaf className="w-6 h-6 text-green-600" />
+                        </div>
                         <div>
-                          <p className="font-medium text-sm">{action.action_title}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(action.completed_at).toLocaleDateString()}
+                          <h3 className="font-medium text-gray-900">{action.action_title}</h3>
+                          <p className="text-sm text-gray-600">
+                            Completed {new Date(action.completed_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <Badge variant="secondary">+{action.points_earned} pts</Badge>
                       </div>
-                    ))}
-                    {actions.length === 0 && (
-                      <p className="text-gray-500 text-center py-4">No actions completed yet. Start your green journey!</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Impact</CardTitle>
-                  <CardDescription>Environmental difference you're making</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span>Total Actions</span>
-                      <span className="font-semibold">{actions.length}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Total Points</span>
-                      <span className="font-semibold">{profile.points}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Current League</span>
-                      <Badge className={getLeagueColor(profile.league)}>{profile.league}</Badge>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>CO₂ Saved</span>
-                      <span className="font-semibold text-green-600">{(profile.points * 0.1).toFixed(1)} kg</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                      <div className="text-right">
+                        <Badge variant="secondary">+{action.points_earned} points</Badge>
+                        {action.photo_url && (
+                          <Camera className="w-4 h-4 text-gray-400 mt-1 ml-auto" />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  Your Achievements
-                </CardTitle>
-                <CardDescription>Track your green journey milestones</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {achievements.slice(0, 6).map((achievement) => (
-                    <div
-                      key={achievement.id}
-                      className={`p-4 rounded-lg border transition-all ${
-                        achievement.earned 
-                          ? `${achievement.color_class} border-current` 
-                          : 'bg-gray-50 border-gray-200 opacity-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <Trophy className={`w-5 h-5 ${achievement.earned ? 'text-current' : 'text-gray-400'}`} />
-                        <h3 className="font-semibold">{achievement.name}</h3>
-                      </div>
-                      <p className="text-sm text-current opacity-80">{achievement.description}</p>
-                      {achievement.earned && (
-                        <Badge variant="secondary" className="mt-2">
-                          +{achievement.points_reward} pts
-                        </Badge>
-                      )}
+            <h2 className="text-xl font-semibold text-gray-900">Your Achievements</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {achievements.map((achievement) => (
+                <Card key={achievement.id} className={achievement.earned ? 'border-green-200 bg-green-50' : 'border-gray-200 opacity-60'}>
+                  <CardContent className="p-6 text-center">
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                      achievement.earned ? 'bg-green-100' : 'bg-gray-100'
+                    }`}>
+                      <Trophy className={`w-8 h-8 ${achievement.earned ? 'text-green-600' : 'text-gray-400'}`} />
                     </div>
-                  ))}
-                </div>
-                {achievements.length > 6 && (
-                  <div className="text-center mt-6">
-                    <Button variant="outline">View All Achievements</Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    <h3 className={`font-semibold mb-2 ${achievement.earned ? 'text-gray-900' : 'text-gray-500'}`}>
+                      {achievement.name}
+                    </h3>
+                    <p className={`text-sm mb-3 ${achievement.earned ? 'text-gray-700' : 'text-gray-400'}`}>
+                      {achievement.description}
+                    </p>
+                    <Badge className={achievement.earned ? achievement.color_class : 'bg-gray-100 text-gray-500'}>
+                      {achievement.earned ? 'Earned!' : `${achievement.points_reward} points`}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
@@ -307,35 +321,13 @@ const Dashboard = () => {
       {/* Photo Upload Modal */}
       {showPhotoUpload && (
         <PhotoUpload
-          action={selectedAction}
-          onSubmit={handlePhotoSubmit}
+          isOpen={showPhotoUpload}
           onClose={() => {
             setShowPhotoUpload(false);
             setSelectedAction(null);
           }}
-        />
-      )}
-
-      {/* League Modal */}
-      {showLeagueModal && (
-        <LeagueModal
-          currentLeague={profile.league}
-          onClose={() => setShowLeagueModal(false)}
-        />
-      )}
-
-      {/* Promotion Modal */}
-      {showPromotionModal && (
-        <PromotionModal
-          promotionData={promotionData}
-          onClose={() => setShowPromotionModal(false)}
-        />
-      )}
-
-      {/* Tutorial Overlay */}
-      {showTutorial && (
-        <TutorialOverlay
-          onComplete={() => setShowTutorial(false)}
+          onUpload={handlePhotoUpload}
+          actionTitle={selectedAction?.title || ''}
         />
       )}
 

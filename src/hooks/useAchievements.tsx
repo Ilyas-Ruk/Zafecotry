@@ -41,7 +41,7 @@ export const useAchievements = () => {
     if (!user) return;
 
     try {
-      // For now, use the existing achievements table data
+      // Fetch user's earned achievements
       const { data: achievementsData } = await supabase
         .from('achievements')
         .select('*')
