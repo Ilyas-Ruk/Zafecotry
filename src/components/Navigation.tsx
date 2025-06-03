@@ -1,16 +1,9 @@
-
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Trophy, User, Leaf, LogOut, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle 
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
 const Navigation = () => {
@@ -40,7 +33,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           <Link to="/dashboard" className="flex items-center gap-2 font-bold text-green-600">
             <Leaf className="w-5 h-5" />
-            <span className="text-base md:text-xl">Zafeco</span>
+            <span className="text-base md:text-xl">Green Family Challenge</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -82,12 +75,10 @@ const Navigation = () => {
               <SheetContent side="right" className="w-[80vw] sm:w-[385px] p-0">
                 <div className="flex flex-col h-full">
                   <div className="p-6 border-b">
-                    <SheetHeader>
-                      <SheetTitle className="flex items-center gap-2 font-bold text-green-600">
-                        <Leaf className="w-5 h-5" />
-                        <span className="text-lg">Zafeco</span>
-                      </SheetTitle>
-                    </SheetHeader>
+                    <div className="flex items-center gap-2 font-bold text-green-600">
+                      <Leaf className="w-5 h-5" />
+                      <span className="text-lg">Green Family Challenge</span>
+                    </div>
                   </div>
                   <div className="flex-1 py-4">
                     {navItems.map((item) => (

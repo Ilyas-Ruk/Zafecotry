@@ -23,15 +23,6 @@ interface UserAction {
   completed_at: string;
 }
 
-interface Achievement {
-  id: string;
-  achievement_id: string;
-  achievement_name: string;
-  description: string;
-  earned_at: string;
-  category: string;
-}
-
 interface TutorialStatus {
   tutorial_completed: boolean;
 }
@@ -40,7 +31,6 @@ export const useUserData = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [actions, setActions] = useState<UserAction[]>([]);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [tutorialStatus, setTutorialStatus] = useState<TutorialStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +40,6 @@ export const useUserData = () => {
     } else {
       setProfile(null);
       setActions([]);
-      setAchievements([]);
       setTutorialStatus(null);
       setLoading(false);
     }
@@ -74,13 +63,6 @@ export const useUserData = () => {
         .eq('user_id', user.id)
         .order('completed_at', { ascending: false });
 
-      // Fetch user achievements
-      const { data: achievementsData } = await supabase
-        .from('achievements')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('earned_at', { ascending: false });
-
       // Fetch tutorial status
       const { data: tutorialData } = await supabase
         .from('user_tutorials')
@@ -90,7 +72,6 @@ export const useUserData = () => {
 
       setProfile(profileData);
       setActions(actionsData || []);
-      setAchievements(achievementsData || []);
       setTutorialStatus(tutorialData);
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -136,34 +117,8 @@ export const useUserData = () => {
       if (profile) {
         const newPoints = profile.points + pointsEarned;
         const newLeague = getLeague(newPoints);
-        
         await updateProfile({ points: newPoints, league: newLeague });
-        
-        // Refresh data to check for new achievements
-        fetchUserData();
       }
-    }
-    return { data, error };
-  };
-
-  const addAchievement = async (achievementId: string, name: string, description: string, category: string) => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from('achievements')
-      .insert({
-        user_id: user.id,
-        achievement_id: achievementId,
-        achievement_name: name,
-        description: description,
-        category: category,
-        earned_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (!error && data) {
-      setAchievements(prev => [data, ...prev]);
     }
     return { data, error };
   };
@@ -182,12 +137,10 @@ export const useUserData = () => {
   return {
     profile,
     actions,
-    achievements,
     tutorialStatus,
     loading,
     updateProfile,
     addAction,
-    addAchievement,
     refreshData: fetchUserData
   };
 };
