@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -73,13 +74,10 @@ export const useUserData = () => {
         .eq('user_id', user.id)
         .order('completed_at', { ascending: false });
 
-      // Fetch user achievements with achievement details
+      // Fetch user achievements
       const { data: achievementsData } = await supabase
-        .from('user_achievements')
-        .select(`
-          *,
-          achievement:achievements(*)
-        `)
+        .from('achievements')
+        .select('*')
         .eq('user_id', user.id)
         .order('earned_at', { ascending: false });
 
@@ -141,16 +139,8 @@ export const useUserData = () => {
         
         await updateProfile({ points: newPoints, league: newLeague });
         
-        // Check for new achievements after updating profile
-        try {
-          await supabase.rpc('check_and_award_achievements', {
-            user_id_param: user.id
-          });
-          // Refresh achievements
-          fetchUserData();
-        } catch (error) {
-          console.error('Error checking achievements:', error);
-        }
+        // Refresh data to check for new achievements
+        fetchUserData();
       }
     }
     return { data, error };

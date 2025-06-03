@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,30 +12,16 @@ import PhotoUpload from "@/components/PhotoUpload";
 import LeagueModal from "@/components/LeagueModal";
 import PromotionModal from "@/components/PromotionModal";
 import TutorialOverlay from "@/components/TutorialOverlay";
+import AchievementPopup from "@/components/AchievementPopup";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
+import { useAchievements } from "@/hooks/useAchievements";
 import { Link } from "react-router-dom";
-import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
-
-const Navigation = () => {
-  return (
-    <nav className="bg-white/80 backdrop-blur-sm border-b border-green-100 sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-green-600">
-            <Leaf className="w-5 h-5" />
-            <span className="text-base md:text-xl">Zafeco</span>
-          </Link>
-          {/* Rest of the navigation code... */}
-        </div>
-      </div>
-    </nav>
-  );
-};
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { profile, actions, tutorialStatus, loading, addAction } = useUserData();
+  const { achievements, checkAndAwardAchievement } = useAchievements();
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
   const [showLeagueModal, setShowLeagueModal] = useState(false);
@@ -95,30 +82,16 @@ const Dashboard = () => {
     if (currentLeague !== newLeague) {
       setPromotionData({ oldLeague: currentLeague, newLeague: newLeague });
       setShowPromotionModal(true);
-      
-      // Add league achievement
-      const achievement = {
-        name: `${newLeague} League Achieved`,
-        description: `You've reached the ${newLeague} League!`,
-        colorClass: getLeagueColor(newLeague)
-      };
-      setAchievementPopup(achievement);
     }
     
-    // Check for action milestones
-    const actionCount = actions.length + 1;
-    if (actionCount === 1) {
-      setAchievementPopup({
-        name: "First Step",
-        description: "Completed your first green action",
-        colorClass: "bg-green-100 text-green-800"
-      });
-    } else if (actionCount === 10) {
-      setAchievementPopup({
-        name: "Consistent Green",
-        description: "Completed 10 green actions",
-        colorClass: "bg-green-100 text-green-800"
-      });
+    // Check for achievements
+    const newAchievement = await checkAndAwardAchievement(
+      { ...profile, points: newPoints, league: newLeague }, 
+      actions.length + 1
+    );
+    
+    if (newAchievement) {
+      setAchievementPopup(newAchievement);
     }
     
     setShowPhotoUpload(false);
@@ -212,9 +185,10 @@ const Dashboard = () => {
 
         {/* Green Actions */}
         <Tabs defaultValue="actions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="actions" id="progress-tab">Green Actions</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="achievements">Achievements</TabsTrigger>
           </TabsList>
           
           <TabsContent value="actions" className="space-y-6">
@@ -284,6 +258,48 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="achievements" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-500" />
+                  Your Achievements
+                </CardTitle>
+                <CardDescription>Track your green journey milestones</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {achievements.slice(0, 6).map((achievement) => (
+                    <div
+                      key={achievement.id}
+                      className={`p-4 rounded-lg border transition-all ${
+                        achievement.earned 
+                          ? `${achievement.color_class} border-current` 
+                          : 'bg-gray-50 border-gray-200 opacity-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <Trophy className={`w-5 h-5 ${achievement.earned ? 'text-current' : 'text-gray-400'}`} />
+                        <h3 className="font-semibold">{achievement.name}</h3>
+                      </div>
+                      <p className="text-sm text-current opacity-80">{achievement.description}</p>
+                      {achievement.earned && (
+                        <Badge variant="secondary" className="mt-2">
+                          +{achievement.points_reward} pts
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {achievements.length > 6 && (
+                  <div className="text-center mt-6">
+                    <Button variant="outline">View All Achievements</Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
