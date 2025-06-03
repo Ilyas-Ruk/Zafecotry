@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,14 +16,16 @@ import TutorialOverlay from "@/components/TutorialOverlay";
 import AchievementPopup from "@/components/AchievementPopup";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { profile, actions, loading: userLoading, addAction, refreshData } = useUserData();
   const { achievements, checkAndAwardAchievement } = useAchievements();
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [selectedAction, setSelectedAction] = useState<any>(null);
   const [achievementPopup, setAchievementPopup] = useState<any>(null);
-  const [showTutorial, setShowTutorial] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  console.log('Dashboard render - user:', user, 'authLoading:', authLoading, 'userLoading:', userLoading);
 
   const sustainabilityActions = [
     {
@@ -118,11 +121,25 @@ const Dashboard = () => {
     setShowTutorial(false);
   };
 
+  // Show loading while auth is loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to auth if no user
   if (!user) {
     navigate('/auth');
     return null;
   }
 
+  // Show loading while user data is loading
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -137,6 +154,7 @@ const Dashboard = () => {
     );
   }
 
+  // Show error if no profile
   if (!profile) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -166,6 +184,8 @@ const Dashboard = () => {
     };
     return colors[league] || 'bg-gray-100 text-gray-800';
   };
+
+  console.log('Dashboard rendering main content - profile:', profile);
 
   return (
     <div className="min-h-screen bg-gray-50">
