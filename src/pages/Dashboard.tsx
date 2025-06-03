@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +22,7 @@ const Dashboard = () => {
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [selectedAction, setSelectedAction] = useState<any>(null);
   const [achievementPopup, setAchievementPopup] = useState<any>(null);
+  const [showTutorial, setShowTutorial] = useState(true);
 
   const sustainabilityActions = [
     {
@@ -80,12 +80,15 @@ const Dashboard = () => {
     setShowPhotoUpload(true);
   };
 
-  const handlePhotoUpload = async (photoUrl: string) => {
+  const handlePhotoSubmit = async (actionId: string, imageFile: File) => {
     if (!selectedAction || !profile) return;
 
     try {
+      // For now, we'll use a placeholder URL since we don't have image upload implemented
+      const photoUrl = `placeholder-${Date.now()}.jpg`;
+      
       await addAction(
-        selectedAction.id,
+        actionId,
         selectedAction.title,
         selectedAction.points,
         photoUrl
@@ -109,6 +112,10 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error adding action:', error);
     }
+  };
+
+  const handleTutorialComplete = () => {
+    setShowTutorial(false);
   };
 
   if (!user) {
@@ -163,7 +170,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <TutorialOverlay />
+      {showTutorial && (
+        <TutorialOverlay onComplete={handleTutorialComplete} />
+      )}
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -235,10 +244,14 @@ const Dashboard = () => {
               {sustainabilityActions.map((action) => (
                 <ActionCard
                   key={action.id}
-                  title={action.title}
-                  description={action.description}
-                  points={action.points}
-                  category={action.category}
+                  action={{
+                    id: action.id,
+                    icon: Leaf,
+                    title: action.title,
+                    points: action.points,
+                    description: action.description,
+                    requiresPhoto: true
+                  }}
                   onClick={() => handleActionClick(action)}
                 />
               ))}
@@ -319,15 +332,19 @@ const Dashboard = () => {
       </div>
 
       {/* Photo Upload Modal */}
-      {showPhotoUpload && (
+      {showPhotoUpload && selectedAction && (
         <PhotoUpload
-          isOpen={showPhotoUpload}
+          action={{
+            id: selectedAction.id,
+            title: selectedAction.title,
+            points: selectedAction.points,
+            description: selectedAction.description
+          }}
+          onSubmit={handlePhotoSubmit}
           onClose={() => {
             setShowPhotoUpload(false);
             setSelectedAction(null);
           }}
-          onUpload={handlePhotoUpload}
-          actionTitle={selectedAction?.title || ''}
         />
       )}
 
