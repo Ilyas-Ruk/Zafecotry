@@ -233,7 +233,7 @@ const Leaderboard = () => {
               ))}
             </div>
           </TabsContent>
-        </tabs>
+        </Tabs>
       </div>
     </div>
   );
