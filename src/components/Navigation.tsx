@@ -1,3 +1,4 @@
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Trophy, User, Leaf, LogOut, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           <Link to="/dashboard" className="flex items-center gap-2 font-bold text-green-600">
             <Leaf className="w-5 h-5" />
-            <span className="text-base md:text-xl">Green Family Challenge</span>
+            <span className="text-base md:text-xl">Zafeco</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -84,7 +85,7 @@ const Navigation = () => {
                     <SheetHeader>
                       <SheetTitle className="flex items-center gap-2 font-bold text-green-600">
                         <Leaf className="w-5 h-5" />
-                        <span className="text-lg">Green Family Challenge</span>
+                        <span className="text-lg">Zafeco</span>
                       </SheetTitle>
                     </SheetHeader>
                   </div>

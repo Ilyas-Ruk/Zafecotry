@@ -73,10 +73,13 @@ export const useUserData = () => {
         .eq('user_id', user.id)
         .order('completed_at', { ascending: false });
 
-      // Fetch achievements
+      // Fetch user achievements with achievement details
       const { data: achievementsData } = await supabase
-        .from('achievements')
-        .select('*')
+        .from('user_achievements')
+        .select(`
+          *,
+          achievement:achievements(*)
+        `)
         .eq('user_id', user.id)
         .order('earned_at', { ascending: false });
 
@@ -136,17 +139,18 @@ export const useUserData = () => {
         const newPoints = profile.points + pointsEarned;
         const newLeague = getLeague(newPoints);
         
-        // Check if league achievement should be awarded
-        if (newLeague !== profile.league) {
-          await addAchievement(
-            `league_${newLeague.toLowerCase()}`,
-            `${newLeague} League Reached`,
-            `Reached the ${newLeague} League`,
-            'league'
-          );
-        }
-        
         await updateProfile({ points: newPoints, league: newLeague });
+        
+        // Check for new achievements after updating profile
+        try {
+          await supabase.rpc('check_and_award_achievements', {
+            user_id_param: user.id
+          });
+          // Refresh achievements
+          fetchUserData();
+        } catch (error) {
+          console.error('Error checking achievements:', error);
+        }
       }
     }
     return { data, error };
