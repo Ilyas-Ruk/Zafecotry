@@ -4,10 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Users, Mail, Calendar, Trophy, Leaf, Droplets, Recycle } from "lucide-react";
+import { Users, Mail, Calendar, Trophy, Leaf, Droplets, Recycle, ChevronDown } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface WeeklyActivity {
   day: string;
@@ -17,27 +25,20 @@ interface WeeklyActivity {
 const Profile = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const { profile, actions, loading } = useUserData();
+  const { profile, actions, achievements, loading } = useUserData();
   const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivity[]>([]);
+  const [showAllAchievements, setShowAllAchievements] = useState(false);
 
   useEffect(() => {
     if (actions) {
       const now = new Date();
-      const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())); // Start from Sunday
+      const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
       startOfWeek.setHours(0, 0, 0, 0);
 
-      // Initialize daily points for the week
       const dailyPoints: { [key: string]: number } = {
-        'Sun': 0,
-        'Mon': 0,
-        'Tue': 0,
-        'Wed': 0,
-        'Thu': 0,
-        'Fri': 0,
-        'Sat': 0
+        'Sun': 0, 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0
       };
 
-      // Sum points for each day
       actions.forEach(action => {
         const actionDate = new Date(action.completed_at);
         if (actionDate >= startOfWeek) {
@@ -46,13 +47,11 @@ const Profile = () => {
         }
       });
 
-      // Convert to array format
       const weeklyData = Object.entries(dailyPoints).map(([day, points]) => ({
         day,
         points
       }));
 
-      // Rotate array to start from Monday
       const mondayStart = [...weeklyData.slice(1), weeklyData[0]];
       setWeeklyActivity(mondayStart);
     }
@@ -95,15 +94,9 @@ const Profile = () => {
   const joinDate = new Date(profile.created_at).toLocaleDateString();
   const daysActive = Math.floor((new Date().getTime() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24));
 
-  // Calculate max points for progress bar scaling
   const maxDailyPoints = Math.max(...weeklyActivity.map(day => day.points)) || 50;
 
-  const achievements = [
-    { name: 'First Water Reuse', icon: Droplets, earned: true, description: 'Upload your first water reuse photo' },
-    { name: 'Recycling Champion', icon: Recycle, earned: false, description: 'Recycle 20 items in a week' },
-    { name: 'Green Streak', icon: Leaf, earned: true, description: 'Complete green actions for 7 days straight' },
-    { name: 'League Climber', icon: Trophy, earned: false, description: 'Reach Silver League' }
-  ];
+  const displayedAchievements = showAllAchievements ? achievements : achievements.slice(0, 4);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
@@ -199,30 +192,59 @@ const Profile = () => {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Achievements</CardTitle>
-                <CardDescription>Track your family's green milestones</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Achievements</CardTitle>
+                  <CardDescription>Track your family's green milestones</CardDescription>
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      View All
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>All Achievements</DialogTitle>
+                      <DialogDescription>
+                        Your family's complete achievement history
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid md:grid-cols-2 gap-4 py-4">
+                      {achievements.map((achievement) => (
+                        <div
+                          key={achievement.id}
+                          className="p-4 rounded-lg border-2 border-green-200 bg-green-50"
+                        >
+                          <h3 className="font-semibold text-gray-900 mb-2">
+                            {achievement.achievement_name}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {achievement.description}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Earned on {new Date(achievement.earned_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {achievements.map((achievement) => (
-                    <div 
-                      key={achievement.name}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        achievement.earned 
-                          ? 'border-green-200 bg-green-50' 
-                          : 'border-gray-200 bg-gray-50 opacity-60'
-                      }`}
+                  {displayedAchievements.map((achievement) => (
+                    <div
+                      key={achievement.id}
+                      className="p-4 rounded-lg border-2 border-green-200 bg-green-50"
                     >
-                      <div className="flex items-center gap-3 mb-2">
-                        <achievement.icon 
-                          className={`w-6 h-6 ${
-                            achievement.earned ? 'text-green-600' : 'text-gray-400'
-                          }`} 
-                        />
-                        <h3 className="font-semibold text-gray-900">{achievement.name}</h3>
-                      </div>
-                      <p className="text-sm text-gray-600">{achievement.description}</p>
+                      <h3 className="font-semibold text-gray-900 mb-2">
+                        {achievement.achievement_name}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {achievement.description}
+                      </p>
                     </div>
                   ))}
                 </div>
