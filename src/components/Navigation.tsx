@@ -28,7 +28,7 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="bg-slate-900/90 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50 shadow-lg">
+    <nav className="bg-white/95 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-lg">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/dashboard" className="flex items-center gap-2 font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent hover:from-emerald-500 hover:to-cyan-500 transition-all duration-300">
@@ -45,8 +45,8 @@ const Navigation = () => {
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105",
                   location.pathname === item.path
-                    ? "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-emerald-400 border border-emerald-500/30"
-                    : "text-gray-300 hover:bg-white/10 hover:text-white"
+                    ? "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-emerald-600 border border-emerald-500/30 shadow-sm"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
                 )}
               >
                 <item.icon className="w-4 h-4" />
@@ -57,7 +57,7 @@ const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="flex items-center gap-2 text-gray-300 hover:text-white hover:bg-red-500/20 transition-all duration-300"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 hover:bg-red-50 transition-all duration-300"
             >
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -68,15 +68,15 @@ const Navigation = () => {
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="px-2 text-gray-300 hover:text-white">
+                <Button variant="ghost" size="sm" className="px-2 text-gray-600 hover:text-gray-800">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[80vw] sm:w-[385px] p-0 bg-slate-900 border-white/10">
+              <SheetContent side="right" className="w-[80vw] sm:w-[385px] p-0 bg-white border-gray-200">
                 <div className="flex flex-col h-full">
-                  <div className="p-6 border-b border-white/10">
-                    <div className="flex items-center gap-2 font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                      <Leaf className="w-5 h-5 text-emerald-400" />
+                  <div className="p-6 border-b border-gray-200">
+                    <div className="flex items-center gap-2 font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+                      <Leaf className="w-5 h-5 text-emerald-600" />
                       <span className="text-lg">Zafeco</span>
                     </div>
                   </div>
@@ -89,8 +89,8 @@ const Navigation = () => {
                         className={cn(
                           "flex items-center gap-3 px-6 py-4 text-base font-medium transition-all duration-300",
                           location.pathname === item.path
-                            ? "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-emerald-400 border-r-2 border-emerald-400"
-                            : "text-gray-300 hover:bg-white/5 hover:text-white"
+                            ? "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-emerald-600 border-r-2 border-emerald-500"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                         )}
                       >
                         <item.icon className="w-5 h-5" />
@@ -98,10 +98,10 @@ const Navigation = () => {
                       </Link>
                     ))}
                   </div>
-                  <div className="p-6 border-t border-white/10 mt-auto">
+                  <div className="p-6 border-t border-gray-200 mt-auto">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start gap-3 text-base font-medium text-gray-300 hover:text-white hover:bg-red-500/20"
+                      className="w-full justify-start gap-3 text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-red-50"
                       onClick={() => {
                         setIsOpen(false);
                         handleSignOut();

@@ -33,9 +33,9 @@ const Dashboard = () => {
 
   if (loading || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <Leaf className="w-12 h-12 text-green-600 mx-auto mb-4 animate-spin" />
+          <Leaf className="w-12 h-12 text-emerald-600 mx-auto mb-4 animate-spin" />
           <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
@@ -118,7 +118,7 @@ const Dashboard = () => {
   const progressToNext = profile.league === 'Wisdom' ? 100 : (profile.points / nextLeagueThreshold[profile.league]) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
