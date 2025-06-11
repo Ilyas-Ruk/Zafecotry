@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Trophy, User, Leaf, LogOut, Menu, Gift } from "lucide-react";
+import { Home, Trophy, User, Leaf, LogOut, Menu, Gift, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ const Navigation = () => {
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
+    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
     { path: '/redemption', icon: Gift, label: 'Rewards' },
     { path: '/profile', icon: User, label: 'Profile' }
