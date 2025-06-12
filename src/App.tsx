@@ -11,6 +11,8 @@ import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import Redemption from "./pages/Redemption";
 import Analytics from "./pages/Analytics";
+import LocalCompanies from "./pages/LocalCompanies";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,14 +41,25 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/about" element={<About />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
             } />
+            <Route path="/analytics" element={
+              <ProtectedRoute>
+                <Analytics />
+              </ProtectedRoute>
+            } />
             <Route path="/leaderboard" element={
               <ProtectedRoute>
                 <Leaderboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/local-companies" element={
+              <ProtectedRoute>
+                <LocalCompanies />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
@@ -57,11 +70,6 @@ const App = () => (
             <Route path="/redemption" element={
               <ProtectedRoute>
                 <Redemption />
-              </ProtectedRoute>
-            } />
-            <Route path="/analytics" element={
-              <ProtectedRoute>
-                <Analytics />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
