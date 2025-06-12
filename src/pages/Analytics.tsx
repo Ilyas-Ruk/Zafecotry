@@ -19,24 +19,7 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-import { 
-  TrendingUp, 
-  Calendar, 
-  Target, 
-  Award, 
-  Leaf, 
-  Droplets, 
-  Recycle, 
-  Heart,
-  Car,
-  Sprout,
-  BarChart3,
-  PieChart as PieChartIcon,
-  Activity,
-  Zap,
-  Fire,
-  Sparkles
-} from "lucide-react";
+import { TrendingUp, Calendar, Target, Award, Leaf, Droplets, Recycle, Heart, Car, Sprout, BarChart3, PieChart as PieChartIcon, Activity, Zap, Siren as Fire, Sparkles } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { useUserData } from "@/hooks/useUserData";
 
